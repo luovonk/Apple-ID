@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: apple-clone
+    env: python
+    buildCommand: ""
+    startCommand: python ip.py
