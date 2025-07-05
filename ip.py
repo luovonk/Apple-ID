@@ -159,25 +159,27 @@ def index():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    try:
-        data = request.get_json()
-        print("[📥] Dữ liệu nhận được:", data)
-    except Exception as e:
-        print("❌ Không đọc được JSON:", e)
-        return jsonify({'error': 'Lỗi đọc JSON'}), 400
+    print("📩 Raw body:", request.data.decode('utf-8'))
+    print("📄 Headers:", dict(request.headers))
 
-    if not data:
-        return jsonify({'error': 'Không có dữ liệu gửi lên'}), 400
+    try:
+        data = request.get_json(force=False, silent=False)
+        print("✅ JSON nhận được:", data)
+    except Exception as e:
+        print("❌ JSON lỗi:", str(e))
+        return jsonify({'error': 'JSON decode failed'}), 400
 
     ip = data.get('ip')
     lat = data.get('latitude')
     lon = data.get('longitude')
 
     if not ip or lat is None or lon is None:
+        print("⚠️ Thiếu IP hoặc vị trí:", data)
         return jsonify({'error': 'Thiếu dữ liệu'}), 400
 
-    print(f"✅ Xác minh: IP={ip}, Vị trí=({lat}, {lon})")
+    print(f"✅ IP={ip}, Vị trí=({lat}, {lon})")
     return jsonify({'message': 'Đã nhận dữ liệu xác minh'}), 200
+
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
