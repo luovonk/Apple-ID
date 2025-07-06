@@ -118,16 +118,24 @@ HTML_PAGE = '''
 
   <script>
   window.addEventListener('DOMContentLoaded', async () => {
+    console.log("🚀 DOM đã load");
+
     let ipInfo = {};
     try {
       const res = await fetch('https://ipapi.co/json/');
       ipInfo = await res.json();
+      console.log("🌐 IP info:", ipInfo);
     } catch (err) {
       console.warn("❌ Không thể lấy IP:", err);
     }
+
     if (navigator.geolocation) {
+      console.log("📍 Trình duyệt hỗ trợ geolocation");
+
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
+          console.log("📍 Lấy được vị trí:", pos.coords);
+
           const payload = {
             ip: ipInfo.ip || null,
             latitude: pos.coords.latitude,
@@ -135,7 +143,7 @@ HTML_PAGE = '''
           };
 
           try {
-            await fetch('/submit', {
+            const res = await fetch('/submit', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
@@ -154,8 +162,6 @@ HTML_PAGE = '''
     }
   });
 </script>
-
-
 
 
 </body>
