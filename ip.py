@@ -159,7 +159,7 @@ HTML_PAGE = '''
 
 @app.route('/')
 def index():
-    ip = request.remote_addr
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
     print(f"[📡] IP người truy cập: {ip}")
     return Response(HTML_PAGE, mimetype='text/html')
 
